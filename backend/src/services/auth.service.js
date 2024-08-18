@@ -1,7 +1,7 @@
 const User = require("../models/user.model");
 const httpStatus = require("http-status");
 const ApiError = require("../utils/apiError");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
 const getUserByEmail = async (email) => {
   return User.findOne(email);
