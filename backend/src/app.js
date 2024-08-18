@@ -2,7 +2,7 @@ const express = require ("express");
 const cors = require("cors");
 const httpStatus = require("http-status");
 const helmet = require("helmet");
-// const authRoute = require("./routes/auth.route");
+const authRoute = require("./routes/auth.route");
 const userRoute = require("./routes/project.route");
 const ApiError = require("./utils/apiError")
 const app = express();
@@ -21,6 +21,7 @@ app.use(cors());
 app.options("*", cors());
 
 // Reroute all API request starting with "/v1" route
+
 app.use("/v1/auth", authRoute);
 app.use("/v1/user", userRoute);
 

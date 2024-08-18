@@ -1,16 +1,18 @@
 const mongoose = require("mongoose");
 const app = require("./app");
 const PORT = 8082;
+const dotenv = require("dotenv");
+const path = require('path');
 
 //username: richamhshwr2
 //qQzWaSHrd78wyDKL
-//mongodb+srv://richamhshwr2:qQzWaSHrd78wyDKL@cluster0.yhcvw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 
-mongoose.connect("mongodb://127.0.0.1:27017/QuesAi", {
-    useNewUrlParser: true,
-})
-.then(() => console.log("Connected to DB at ", PORT))
-.catch(() => console.log("Failed to connect at DB at", PORT));
+dotenv.config({ path: path.join(__dirname, '../.env') });
+console.log("env",process.env.JWT_SECRET)
+
+mongoose.connect(process.env.MONGODB_URL || "mongodb://127.0.0.1:27017/QuesAi")
+.then(() => console.log("Connected to DB at ", process.env.MONGODB_URL))
+.catch(() => console.log("Failed to connect at DB at", process.env.MONGODB_URL));
 
 app.listen(PORT, () => {
     console.log("Server is running on port 8082");

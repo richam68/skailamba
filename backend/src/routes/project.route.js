@@ -9,7 +9,9 @@ router.get("/allEpisodes/:projectId", projectController.getAllEpisodes);
 
 //project routes
 router.post("/newProject", projectController.createProject);
-router.get("/", projectController.getProjects);
+
+router.get("/", projectController.getIndividualProject);
+
 router.put("/:id", projectController.updateProject);
 router.delete("/:id", projectController.deleteProject);
 

@@ -4,7 +4,7 @@ const ApiError = require("../utils/apiError");
 const bcrypt = require("bcrypt");
 
 const getUserByEmail = async (email) => {
-  return User.findOne(email);
+  return User.findOne({email: email});
 };
 
 const createUser = async (user) => {
@@ -14,24 +14,24 @@ const createUser = async (user) => {
   if (userExists) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Email already taken");
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const createUser = await User.create({
+   const salt = await bcrypt.genSalt();
+   const hashedPassword = await bcrypt.hash(password, salt);
+   const createUser = await User.create({
     username,
     email,
     password: hashedPassword,
   });
+  
   return createUser;
 };
 
 //login user function
 const loginUser = async(email, password) => {
     let user = await getUserByEmail(email);
-
-    if(!user || !(await User.isPasswordMatch(password))){
+  
+    if(!user || !(await user.isPasswordMatch(password))){
         throw new ApiError(httpStatus.UNAUTHORIZED, "Incorrect email or password")
     }
-
     return user
 }
 
