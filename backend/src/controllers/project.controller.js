@@ -104,23 +104,26 @@ const deleteProject = catchAsync(async (req, res) => {
 // Add Episode to a Project
 const addEpisode = catchAsync(async (req, res) => {
     const { title, content } = req.body;
-    console.log("title episode", title, content)
     try {
       const project = await Project.findById(req.params.projectId);
   
       // if (project.user.toString() !== req.user._id.toString()) {
       //   return res.status(401).json({ message: "Not authorized" });
       // }
-      const episode = new Episode({
+      const episode = await new Episode({
         title,
         content,
-        project: req.params.projectId,
+        projectId: req.params.projectId,
       });
-      console.log("episode", episode)
+
       const savedEpisode = await episode.save();
+
       project.episodes.push(savedEpisode._id);
       await project.save();
-      res.status(201).json(savedEpisode);
+
+      const populatedProject = await Project.findById(req.params.projectId).populate('episodes');
+
+      res.status(201).json(populatedProject.episodes);
     } catch (err) {
       res.status(400).json({ message: "Failed to add episode" });
     }
@@ -141,40 +144,39 @@ const addEpisode = catchAsync(async (req, res) => {
   const getAllEpisodes = catchAsync(async (req, res) => {
     try {
       let { projectId } = req.params;
-      // Find all episodes where the `project` field matches the given `projectId`
-      // and populate the `project` field with the corresponding Project document
-      const episodes = await Episode.find({ project: projectId });
-  
-      return res.status(200).json({ episodes });
+      const eachProject = await Project.findById(projectId).populate('episodes');
+      
+      return res.status(200).json(eachProject.episodes);
     } catch (error) {
       console.error("Error fetching episodes:", error);
       throw new Error("Could not retrieve episodes");
     }
   });
-
+  
+  //view api
   const getContentByEpisodeId = catchAsync(async (req, res) => {
     let { episodeId } = req.params;
     let episode = await Episode.findById(episodeId);
     if (!episode) {
       return res.status(404).json({ message: "episode not found" });
     }
-    let content = episode.content;
-    return res.status(200).json({ content });
+    let {title, content} = episode;
+    return res.status(200).json({ title, content });
   });
 
+  //hold
   const updateContentById = catchAsync(async (req, res) => {
     let { episodeId } = req.params;
     let episode = await Episode.findById(episodeId);
+    console.log("episode", episode)
     if (!episode) {
       return res.status(404).json({ message: "episode not found" });
     }
-  
     let newContent = req.body.content;
     episode.content = newContent;
-    episode.updatedAt = new Date();
-    await episode.save();
-    await Project.findByIdAndUpdate(episode.project, { updatedAt: new Date() });
-    return res.status(200).json({ message: "successful" });
+    console.log("episode.content", episode.content)
+    let updatedEpisode = await episode.save();
+    return res.status(200).json({updatedEpisode: updatedEpisode, message: "successful" });
   });
 
   const deleteEpisode = catchAsync(async (req, res) => {
@@ -182,17 +184,12 @@ const addEpisode = catchAsync(async (req, res) => {
   
     // Find the project
     const project = await Project.findById(projectId);
-  
-    // Ensure the project belongs to the authenticated user
-    if (project.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: "Not authorized" });
-    }
-  
-    // Find the episode
-    const episode = await Episode.findById(episodeId);
-  
+
+  // Find the episode
+  const episode = await Episode.findById(episodeId);
+
     // Ensure the episode exists and belongs to the project
-    if (!episode || episode.project.toString() !== projectId) {
+    if (!episode) {
       return res.status(404).json({ message: "Episode not found" });
     }
   
@@ -202,8 +199,9 @@ const addEpisode = catchAsync(async (req, res) => {
   
     // Delete the episode from the Episode collection
     await Episode.findByIdAndDelete(episodeId)
-  
-    res.json({ message: "Episode removed successfully" });
+    const populatedEpisode = await project.populate('episodes');
+    
+    res.json({episodes: populatedEpisode.episodes, message: "Episode removed successfully" });
   });
 
 module.exports = {
