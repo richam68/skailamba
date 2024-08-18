@@ -164,9 +164,9 @@ const addEpisode = catchAsync(async (req, res) => {
     return res.status(200).json({ title, content });
   });
 
-  //hold
   const updateContentById = catchAsync(async (req, res) => {
     let { episodeId } = req.params;
+    console.log("episodeId", episodeId)
     let episode = await Episode.findById(episodeId);
     console.log("episode", episode)
     if (!episode) {
